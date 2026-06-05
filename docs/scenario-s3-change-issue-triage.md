@@ -80,7 +80,7 @@ Sample issues created:
 5. If a CHG number is found, it calls `change-lookup /changes/{cr}` and retrieves risk tier and status.
 6. It classifies the issue using `github-issue-triage.md` rules.
 7. It applies the appropriate label set (e.g. `change-related`, `chg0030001`, `high`).
-8. It posts a structured triage comment following the `🤖 **Orders SRE Agent Bot**` template.
+8. It posts a structured triage comment following the `🤖 **SRE Agent**` template.
 9. On subsequent runs, already-triaged issues are skipped.
 
 ## Portal Steps
