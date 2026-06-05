@@ -40,8 +40,8 @@ az containerapp revision list -n orders-api -g <rg> -o table
 # Check current alert state
 az monitor alert list -g <rg> -o table
 
-# Roll back to previous revision manually
-az containerapp update -n orders-api -g <rg> --revision-suffix <previous-suffix>
+# Roll back to the stable image (lab)
+bash scripts/reset-app.sh
 ```
 
 ## Handoff Checklist
