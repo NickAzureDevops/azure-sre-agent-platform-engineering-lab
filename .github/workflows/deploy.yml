@@ -2,6 +2,17 @@ name: Deploy SRE Agent Lab
 
 on:
   workflow_dispatch:
+    inputs:
+      plan:
+        description: "Run Terraform plan"
+        required: false
+        type: boolean
+        default: true
+      apply:
+        description: "Run Terraform apply and post-provision"
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -36,10 +47,13 @@ jobs:
         run: terraform -chdir=infra init
 
       - name: Terraform plan
+        if: ${{ inputs.plan || inputs.apply }}
         run: terraform -chdir=infra plan -out=tfplan -var-file=terraform.tfvars
 
       - name: Terraform apply
+        if: ${{ inputs.apply }}
         run: terraform -chdir=infra apply -auto-approve tfplan
 
       - name: Run post-provision setup
+        if: ${{ inputs.apply }}
         run: bash scripts/post-provision.sh

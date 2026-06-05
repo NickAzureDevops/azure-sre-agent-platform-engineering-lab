@@ -20,9 +20,12 @@ A hands-on lab for Azure SRE Agent. Four scenarios that build on each other. Des
 This repo deploys automatically with GitHub Actions using [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
 
 - Triggered by manual run (`workflow_dispatch`) only.
+- Supports manual inputs: `run_plan` and `run_apply` (both default to true).
 - Logs in to Azure using the `AZURE_CREDENTIALS` repository secret.
 - Runs `terraform -chdir=infra init`, `terraform -chdir=infra plan -out=tfplan -var-file=terraform.tfvars`, then `terraform -chdir=infra apply -auto-approve tfplan`.
 - Runs `bash scripts/post-provision.sh` after Terraform to configure data-plane artifacts.
+
+To tear down the lab, use [`.github/workflows/destroy.yml`](.github/workflows/destroy.yml): it runs daily at 21:00 UTC and can also be run manually (manual runs require `DESTROY` in `confirm_destroy`).
 
 Set the `AZURE_CREDENTIALS` secret in your repository before relying on CI deployment.
 
