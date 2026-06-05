@@ -19,39 +19,6 @@ A developer ships a release straight to production with no change request and no
 | **Access level: Low / Action mode: Review** | Default safe posture — the agent recommends rollback but takes no write action until a human approves |
 | **Confidence score** | `triage-agent` returns `"confidence": "high"` only once it correlates the rogue revision + missing CR + error spike |
 
-## Scenario Diagram
-
-```
-Azure Monitor 5xx alert
-        |
-        v
-Incident Response Plan
-  routes to orchestrator-agent
-        |
-        v
-orchestrator-agent
-  normalizes IncidentContext
-        |
-        v
-triage-agent
-  Log Analytics + App Insights
-        |
-        v
-  Active CR in change-lookup? --> No CR found
-        |
-        v
-  Knowledge base:
-  Unauthorized Change runbook
-        |
-        v
-  az containerapp revision list
-  identify rogue revision
-        |
-        v
-  Post structured incident summary
-  + rollback recommendation (Review mode)
-```
-
 ## Scenario Dependencies
 
 - **Requires:** none — this is the entry point for the lab

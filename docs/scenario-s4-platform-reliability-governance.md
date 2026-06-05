@@ -17,39 +17,6 @@ After incident triage and remediation, the platform team runs a governance pass 
 | **GitHub issue creation** | For each Warn or Fail guardrail, the agent creates a GitHub backlog issue with owner, due date, and acceptance criteria |
 | **Proactive mode** | Unlike S1–S3 which are reactive (alert or schedule driven), S4 is initiated by the platform team asking *"run a governance review"* |
 
-## Scenario Diagram
-
-```
-Platform engineer asks:
-  "Run a governance review for orders-api"
-        |
-        v
-Agent recalls incident memory from S1/S2
-  + reads connected code repo (deep context)
-        |
-        v
-Evaluate guardrails:
-  1. CR linkage for production deploy
-  2. Liveness + readiness probes configured
-  3. Minimum replica baseline met
-  4. Azure Monitor alert coverage
-  5. Service ownership + escalation path defined
-  6. On-call handoff notes present
-        |
-        v
-Score each: Pass / Warn / Fail
-  (critical failures block overall Pass)
-        |
-        v
-Compute overall risk score
-  Generate summary table + chart
-        |
-        v
-For each Warn/Fail:
-  Create GitHub backlog issue
-  (owner, due date, acceptance criteria)
-```
-
 ## Scenario Dependencies
 
 - **Requires:** Run S1 or S2 first — the agent needs incident memory to correlate guardrail failures to real evidence

@@ -19,39 +19,6 @@ The morning after S2, customer issues flood GitHub. The `issue-triager` runs on 
 | **Idempotent triage** | Agent skips issues already triaged (existing bot comment + labels) — safe to run multiple times |
 | **Structured output** | Each triage comment follows a fixed schema: Classification, Linked CR, CR Status, Summary, Recommended next steps |
 
-## Scenario Diagram
-
-```
-Schedule trigger (every 12 h)
-        |
-        v
-issue-triager subagent
-  FetchGithubIssues: open [Customer Issue] tickets
-        |
-        v
-For each issue:
-  Already triaged? --> Skip
-        |
-        No
-        v
-  Extract CR number from title/body
-        |
-        v
-  CR found? --> change-lookup /changes/{cr}
-        |               |
-        No              v
-        |         CR risk + status
-        |               |
-        +---------------+
-        |
-        v
-  Classify: Bug / Change-Related / Policy-Violation
-            / Question / Feature-Request
-        |
-        v
-  Apply labels + post structured triage comment
-```
-
 ## Scenario Dependencies
 
 - **Requires:** S1 or S2 run first — the sample issues reference `CHG0030001` and the rogue revision from that incident

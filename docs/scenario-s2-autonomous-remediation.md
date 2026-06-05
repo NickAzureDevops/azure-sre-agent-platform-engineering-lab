@@ -19,38 +19,6 @@ Same incident as S1, but with higher trust. Once the agent confirms rogue revisi
 | **Agent memory (learning)** | The completed remediation — revision name, CR gap, recovery time — is stored in agent memory and influences future investigations |
 | **Confidence threshold** | The agent only acts autonomously when `"confidence": "high"` from `triage-agent`; low/medium confidence still produces a recommendation only |
 
-## Scenario Diagram
-
-```
-Detect and triage from S1
-        |
-        v
-Rogue revision confirmed + no CR?
-        |
-       Yes
-        |
-        v
-action_mode = Automatic
-access_level = High
-        |
-        v
-triage-agent:
-  az containerapp update
-  deactivate rogue revision
-        |
-        v
-GET /health returns normal
-activeChangeRequest clears
-        |
-        v
-Re-query metrics:
-  5xx rate drops to 0
-        |
-        v
-Post-action summary
-  stored in agent memory
-```
-
 ## Scenario Dependencies
 
 - **Requires:** Understand S1 first — S2 runs the identical detection + triage flow, only the trust level differs
