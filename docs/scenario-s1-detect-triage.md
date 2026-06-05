@@ -73,7 +73,7 @@ bash scripts/reset-app.sh
 5. `orchestrator-agent` delegates to `triage-agent` for technical investigation.
 6. `triage-agent` searches agent memory for similar past incidents.
 7. `triage-agent` queries Log Analytics (`ContainerAppConsoleLogs_CL`) and confirms the 5xx spike.
-8. `triage-agent` calls `GET /health` on orders-api and reads `activeChangeRequest: null`.
+8. `triage-agent` calls `GET /health` on orders-api and reads `activeChangeRequest: ""` (empty string).
 9. `triage-agent` queries `change-lookup /changes/active/now` and confirms no active CR.
 10. `triage-agent` searches the knowledge base and matches the Unauthorized Change runbook.
 11. `triage-agent` runs `az containerapp revision list` and identifies the rogue revision.
