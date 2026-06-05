@@ -57,7 +57,7 @@ Before handing off to the next shift, confirm the following:
 
 ## Notes for the SRE Agent
 
-When the SRE Agent runs the platform reliability governance review (S4), it checks this file to confirm on-call ownership and escalation paths are defined. If this file is missing or incomplete, the `Service ownership and escalation path` guardrail will score **Fail**.
+When the SRE Agent runs the platform reliability governance review (S4), it checks this file to confirm on-call handoff notes (ownership, escalation, and severity mapping) are defined. If this file is missing or incomplete, the `On-call handoff notes are present in knowledge base` guardrail will score **Fail**.
 
 The agent should:
 1. Verify the service ownership table covers all production services.
