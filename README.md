@@ -25,7 +25,7 @@ Deploy workflow: [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
 - Trigger: manual run only.
 - Inputs: `plan` and `apply` (both default to true).
 - Secret required: `AZURE_CREDENTIALS`.
-- Behavior: Terraform init, plan, optional apply, and optional post-provision.
+- Behavior: Terraform init, plan/apply with `deploy_apps=false` (core agent infra only), and optional post-provision.
 
 Destroy workflow: [`.github/workflows/destroy.yml`](.github/workflows/destroy.yml)
 
