@@ -56,6 +56,53 @@ jobs:
       - name: Terraform validate
         run: terraform -chdir=infra validate
 
+      - name: Import existing smart detector alert rule
+        if: ${{ inputs.plan || inputs.apply }}
+        run: |
+          set -euo pipefail
+          TF_RESOURCE="azurerm_monitor_smart_detector_alert_rule.failure_anomalies"
+          SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
+          # Use Python for robust HCL value extraction (handles quotes, whitespace, comments)
+          RG=$(python3 -c "
+          import re, sys
+          with open('infra/terraform.tfvars') as f:
+              for line in f:
+                  m = re.match(r'\s*resource_group_name\s*=\s*\"([^\"]+)\"', line)
+                  if m:
+                      print(m.group(1)); sys.exit(0)
+          print('ERROR: resource_group_name not found in terraform.tfvars', file=sys.stderr)
+          sys.exit(1)")
+
+          RULES_JSON=$(az rest \
+            --method GET \
+            --url "https://management.azure.com/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG}/providers/Microsoft.AlertsManagement/smartDetectorAlertRules?api-version=2021-04-01" \
+            2>/dev/null || echo '{"value":[]}')
+
+          # Use Python for case-insensitive name matching with error handling
+          RULE_NAME=$(echo "$RULES_JSON" | python3 -c "
+          import json, sys
+          try:
+              data = json.load(sys.stdin)
+          except json.JSONDecodeError as e:
+              print(f'WARNING: Failed to parse Azure API response: {e}', file=sys.stderr)
+              sys.exit(0)
+          for r in data.get('value', []):
+              if 'failure anomalies' in r['name'].lower():
+                  print(r['name']); sys.exit(0)")
+
+          if [ -n "$RULE_NAME" ]; then
+            RULE_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG}/providers/Microsoft.AlertsManagement/smartDetectorAlertRules/${RULE_NAME}"
+            if ! terraform -chdir=infra state show "${TF_RESOURCE}" > /dev/null 2>&1; then
+              echo "Importing smart detector alert rule: $RULE_NAME"
+              terraform -chdir=infra import "${TF_RESOURCE}" "$RULE_ID"
+            else
+              echo "Smart detector alert rule already in Terraform state, skipping import."
+            fi
+          else
+            echo "No existing smart detector alert rule found in $RG, skipping import."
+          fi
+
       - name: Terraform plan
         if: ${{ inputs.plan || inputs.apply }}
         run: terraform -chdir=infra plan -out=tfplan -var-file=terraform.tfvars
