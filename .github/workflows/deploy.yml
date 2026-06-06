@@ -100,13 +100,6 @@ jobs:
             --output none
 
       # -----------------------------
-      # 5. Install SRE extension
-      # -----------------------------
-      - name: Install SRE extension
-        run: |
-          az extension add -n sre
-
-      # -----------------------------
       # 6. Run post-provision data-plane setup
       # -----------------------------
       - name: Run full post-provision setup
