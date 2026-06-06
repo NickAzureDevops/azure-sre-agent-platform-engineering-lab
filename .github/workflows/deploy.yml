@@ -80,6 +80,11 @@ jobs:
           az containerapp update --name "$ORDERS_API_NAME" --resource-group "$RG" --image "$ACR_LOGIN_SERVER/orders-api:latest" --output none
           az containerapp update --name "$CHANGE_LOOKUP_NAME" --resource-group "$RG" --image "$ACR_LOGIN_SERVER/change-lookup:latest" --output none
 
+      - name: Install Azure SRE Agent extension
+        if: ${{ inputs.run_data_plane }}
+        run: |
+          az extension add --name sre --upgrade
+
       - name: Run full post-provision setup
         if: ${{ inputs.run_data_plane }}
         shell: bash
