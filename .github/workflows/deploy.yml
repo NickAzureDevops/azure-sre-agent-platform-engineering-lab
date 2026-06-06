@@ -104,8 +104,7 @@ jobs:
       # -----------------------------
       - name: Install SRE extension
         run: |
-          az extension remove --name sre || true
-          az extension add --name sre --upgrade
+          az extension add -n sre
 
       # -----------------------------
       # 6. Run post-provision data-plane setup
