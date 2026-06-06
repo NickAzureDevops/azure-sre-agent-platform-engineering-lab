@@ -20,7 +20,7 @@ resource "azapi_resource" "orders_api_5xx" {
       displayName        = "Orders API 5xx"
       severity           = 2
       enabled            = true
-      evaluationFrequency = "PT5M"
+      evaluationFrequency = "PT15M"
       windowSize         = "PT5M"
       autoMitigate       = true
       skipQueryValidation = true
@@ -59,7 +59,8 @@ resource "azapi_resource" "orders_api_health" {
       windowSize         = "PT5M"
       autoMitigate       = true
       skipQueryValidation = true
-      scopes             = [azurerm_log_analytics_workspace.law.id]
+      scopes = [azurerm_log_analytics_workspace.law[0].id]
+
       criteria = {
         allOf = [{
           query           = "ContainerAppSystemLogs_CL\n| where ContainerAppName_s == \"orders-api\"\n| where Log_s has_any (\"ProbeFailure\", \"Liveness probe failed\", \"Readiness probe failed\", \"container restarted\")\n| summarize ProbeFailures = count()"
@@ -72,6 +73,8 @@ resource "azapi_resource" "orders_api_health" {
         actionGroups = [azurerm_monitor_action_group.sre_lab[0].id]
       }
     }
+    depends_on = [azurerm_log_analytics_workspace.law]
+
   }
 }
 
