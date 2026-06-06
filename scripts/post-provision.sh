@@ -33,25 +33,6 @@ ok "Agent endpoint: $AGENT_ENDPOINT"
 
 
 # ---------------------------------------------------------
-# 3/7 — Wait for SRE Agent health
-# ---------------------------------------------------------
-log "Checking SRE Agent health..."
-
-for i in {1..30}; do
-  if curl -s --max-time 5 "$AGENT_ENDPOINT/health" | grep -q "healthy"; then
-    ok "SRE Agent is healthy"
-    break
-  fi
-  warn "Agent not healthy yet... retrying ($i/30)"
-  sleep 10
-done
-
-if ! curl -s "$AGENT_ENDPOINT/health" | grep -q "healthy"; then
-  err "SRE Agent did not become healthy"
-  exit 1
-fi
-
-# ---------------------------------------------------------
 # 4/7 — Load knowledge base
 # ---------------------------------------------------------
 log "Loading knowledge base..."
