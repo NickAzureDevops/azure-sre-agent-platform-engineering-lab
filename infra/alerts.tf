@@ -101,4 +101,3 @@ resource "azurerm_monitor_action_group" "ai_smart_detection" {
     email_address = var.email_receiver_address
   }
 }
-
