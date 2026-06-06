@@ -31,15 +31,6 @@ ok "Agent ID: $AGENT_ID"
 ok "Resource group: $RG"
 ok "Agent endpoint: $AGENT_ENDPOINT"
 
-if [[ -z "$AGENT_ENDPOINT" ]]; then
-  err "agent_data_plane_url output missing — cannot continue"
-  exit 1
-fi
-
-# Extract hostname (strip https://)
-HOSTNAME="$(echo "$AGENT_ENDPOINT" | sed 's~https\?://~~')"
-log "Resolved hostname: $HOSTNAME"
-
 
 # ---------------------------------------------------------
 # 3/7 — Wait for SRE Agent health
