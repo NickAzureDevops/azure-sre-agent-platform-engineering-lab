@@ -5,17 +5,14 @@ on:
     inputs:
       plan:
         description: "Run Terraform plan"
-        required: false
         type: boolean
         default: true
       apply:
         description: "Run Terraform apply"
-        required: false
         type: boolean
         default: true
       run_data_plane:
         description: "Run SRE data-plane setup (knowledge, subagents, response plan)"
-        required: false
         type: boolean
         default: false
 
@@ -28,12 +25,23 @@ jobs:
     environment: production
 
     steps:
+      # -----------------------------
+      # 1. Checkout
+      # -----------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # -----------------------------
+      # 2. Azure login (includes CLI)
+      # -----------------------------
       - name: Azure CLI login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # -----------------------------
+      # 3. Terraform setup
+      # -----------------------------
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -56,41 +64,60 @@ jobs:
         if: ${{ inputs.apply }}
         run: terraform -chdir=infra apply -auto-approve tfplan
 
+      # -----------------------------
+      # 4. Build + update Container Apps
+      # -----------------------------
       - name: Build and update Container Apps
         if: ${{ inputs.apply }}
         shell: bash
         run: |
           set -euo pipefail
 
-          ACR_NAME="$(terraform -chdir=infra output -raw acr_name 2>/dev/null || true)"
-          ACR_LOGIN_SERVER="$(terraform -chdir=infra output -raw acr_login_server 2>/dev/null || true)"
-          ORDERS_API_NAME="$(terraform -chdir=infra output -raw orders_api_name 2>/dev/null || true)"
-          CHANGE_LOOKUP_NAME="$(terraform -chdir=infra output -raw change_lookup_name 2>/dev/null || true)"
-          AGENT_ID="$(terraform -chdir=infra output -raw agent_id 2>/dev/null || true)"
+          ACR_NAME="$(terraform -chdir=infra output -raw acr_name)"
+          ACR_LOGIN_SERVER="$(terraform -chdir=infra output -raw acr_login_server)"
+          ORDERS_API_NAME="$(terraform -chdir=infra output -raw orders_api_name)"
+          CHANGE_LOOKUP_NAME="$(terraform -chdir=infra output -raw change_lookup_name)"
+          AGENT_ID="$(terraform -chdir=infra output -raw agent_id)"
           RG="$(echo "$AGENT_ID" | cut -d/ -f5)"
 
-          if [[ -z "$ACR_NAME" || -z "$ACR_LOGIN_SERVER" || -z "$ORDERS_API_NAME" || -z "$CHANGE_LOOKUP_NAME" || -z "$RG" ]]; then
-            echo "Required Terraform outputs are missing for app deployment"
-            exit 1
-          fi
+          echo "Building images in ACR: $ACR_NAME"
 
           az acr build --registry "$ACR_NAME" --image orders-api:latest src/orders-api/ --no-logs
           az acr build --registry "$ACR_NAME" --image change-lookup:latest change-lookup/ --no-logs
 
-          az containerapp update --name "$ORDERS_API_NAME" --resource-group "$RG" --image "$ACR_LOGIN_SERVER/orders-api:latest" --output none
-          az containerapp update --name "$CHANGE_LOOKUP_NAME" --resource-group "$RG" --image "$ACR_LOGIN_SERVER/change-lookup:latest" --output none
+          echo "Updating Container Apps…"
 
-      - name: Install Azure SRE Agent extension
-        if: ${{ inputs.run_data_plane }}
+          az containerapp update \
+            --name "$ORDERS_API_NAME" \
+            --resource-group "$RG" \
+            --image "$ACR_LOGIN_SERVER/orders-api:latest" \
+            --output none
+
+          az containerapp update \
+            --name "$CHANGE_LOOKUP_NAME" \
+            --resource-group "$RG" \
+            --image "$ACR_LOGIN_SERVER/change-lookup:latest" \
+            --output none
+
+      # -----------------------------
+      # 5. Install SRE extension
+      # -----------------------------
+      - name: Install SRE extension
         run: |
+          az extension remove --name sre || true
           az extension add --name sre --upgrade
 
+      # -----------------------------
+      # 6. Run post-provision data-plane setup
+      # -----------------------------
       - name: Run full post-provision setup
         if: ${{ inputs.run_data_plane }}
         shell: bash
-        run: |
-          bash scripts/post-provision.sh
+        run: bash scripts/post-provision.sh
 
+      # -----------------------------
+      # 7. Dump Azure CLI logs on failure
+      # -----------------------------
       - name: Dump Azure CLI logs on failure
         if: failure()
         run: |
