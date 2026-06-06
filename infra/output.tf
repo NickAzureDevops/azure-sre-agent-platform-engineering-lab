@@ -9,7 +9,8 @@ output "agent_portal_url" {
 }
 
 output "agent_data_plane_url" {
-  value = "https://${var.agent_name}.${var.location}.azuresre.ai"
+  description = "Agent data plane endpoint."
+  value       = "https://${var.agent_name}.${var.location}.azuresre.ai"
 }
 
 output "managed_identity_id" {

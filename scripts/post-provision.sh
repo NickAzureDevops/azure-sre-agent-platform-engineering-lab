@@ -40,24 +40,6 @@ fi
 HOSTNAME="$(echo "$AGENT_ENDPOINT" | sed 's~https\?://~~')"
 log "Resolved hostname: $HOSTNAME"
 
-# ---------------------------------------------------------
-# 2/7 — Wait for DNS propagation
-# ---------------------------------------------------------
-log "Waiting for DNS to resolve..."
-
-for i in {1..30}; do
-  if nslookup "$HOSTNAME" >/dev/null 2>&1; then
-    ok "DNS resolved for $HOSTNAME"
-    break
-  fi
-  warn "DNS not ready yet... retrying ($i/30)"
-  sleep 10
-done
-
-if ! nslookup "$HOSTNAME" >/dev/null 2>&1; then
-  err "DNS did not propagate in time"
-  exit 1
-fi
 
 # ---------------------------------------------------------
 # 3/7 — Wait for SRE Agent health
