@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-# scripts/create-sample-issues.sh — File sample [Customer Issue] GitHub issues for S4 triage scenario.
-#
-# Usage:  bash scripts/create-sample-issues.sh OWNER/REPO
-#
-# Requires: gh CLI authenticated (gh auth login)
 set -euo pipefail
 
 REPO="${1:-}"

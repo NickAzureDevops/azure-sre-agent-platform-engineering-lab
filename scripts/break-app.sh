@@ -1,11 +1,4 @@
 #!/usr/bin/env bash
-# scripts/break-app.sh — Scenario 2: simulate an unauthorized deploy + 5xx surge.
-#
-# What this does:
-#   1. Builds a "rogue" image (missing auth header) via ACR Tasks
-#   2. Deploys it directly to the orders-api Container App (bypassing a CR)
-#   3. Clears the active change request so /health shows no linked CR
-#   4. Drives 100% failure rate to generate Azure Monitor alerts
 set -euo pipefail
 
 D="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -47,6 +40,9 @@ curl -sf -X POST "${ORDERS_API_URL}/api/simulate/clear-cr" -o /dev/null || true
 
 echo "  Setting failure rate to 100% …"
 curl -sf -X POST "${ORDERS_API_URL}/api/simulate/failure-rate/100" -o /dev/null
+
+echo "  Setting health to unhealthy …"
+curl -sf -X POST "${ORDERS_API_URL}/api/simulate/health/unhealthy" -o /dev/null
 
 echo "  Generating 5xx traffic (60 requests) …"
 for i in $(seq 1 60); do
