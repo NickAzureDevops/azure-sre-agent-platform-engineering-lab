@@ -13,25 +13,10 @@ resource "azapi_resource" "sre_agent" {
 
   body = {
     properties = {
-      knowledgeGraphConfiguration = {
-        identity = local.effective_identity_id
-        # Always include the agent's own RG (where orders-api / change-lookup live)
-        # plus any extra RGs the caller listed in target_resource_groups.
-        managedResources = distinct(concat(
-          ["/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${azurerm_resource_group.agent.name}"],
-          [for rg in var.target_resource_groups : "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${rg}"]
-        ))
-      }
       actionConfiguration = {
         accessLevel = var.access_level
         identity    = local.effective_identity_id
         mode        = var.action_mode
-      }
-      logConfiguration = {
-        applicationInsightsConfiguration = {
-          appId            = local.effective_ai_app_id
-          connectionString = local.effective_ai_conn_str
-        }
       }
       upgradeChannel        = var.upgrade_channel
       monthlyAgentUnitLimit = var.monthly_agent_unit_limit

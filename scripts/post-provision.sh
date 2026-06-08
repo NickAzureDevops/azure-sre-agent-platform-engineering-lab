@@ -17,13 +17,6 @@ fi
 read_tf() { echo "$TF_OUT" | jq -r ".${1}.value // empty"; }
 
 AGENT_ID="$(read_tf agent_id)"
-ACR_NAME="$(read_tf acr_name)"
-ACR_LOGIN_SERVER="$(read_tf acr_login_server)"
-ORDERS_API_NAME="$(read_tf orders_api_name)"
-CHANGE_LOOKUP_NAME="$(read_tf change_lookup_name)"
-HEALTH_ALERT_ID="$(read_tf orders_api_health_alert_id)"
-ACTION_MODE="$(read_tf action_mode)"
-RG="$(echo "$AGENT_ID" | cut -d/ -f5)"
 
 log "Resolving agent data plane endpoint..."
 AGENT_ENDPOINT="$(az resource show --ids "$AGENT_ID" --query "properties.agentEndpoint" -o tsv 2>/dev/null || true)"
@@ -40,10 +33,9 @@ if [[ -z "$ACCESS_TOKEN" ]]; then
 fi
 
 ok "Agent ID: $AGENT_ID"
-ok "Resource group: $RG"
 ok "Agent endpoint: $AGENT_ENDPOINT"
 
-# 4/7 — Load knowledge base (upload each md file individually)
+# Load knowledge base (upload each md file individually)
 log "Loading knowledge base..."
 for kb_file in \
   knowledge-base/http-500-errors.md \
