@@ -6,40 +6,6 @@ resource "azurerm_monitor_action_group" "sre_lab" {
   tags                = var.tags
 }
 
-resource "azapi_resource" "orders_api_5xx" {
-  count     = local.apps_enabled ? 1 : 0
-  type      = "Microsoft.Insights/scheduledQueryRules@2022-06-15"
-  name      = "alert-orders-api-5xx"
-  location  = var.location
-  parent_id = azurerm_resource_group.agent.id
-  tags      = var.tags
-
-  body = {
-    properties = {
-      description        = "Orders API: spike in 5xx responses or error logs over the last 5 minutes."
-      displayName        = "Orders API 5xx"
-      severity           = 2
-      enabled            = true
-      evaluationFrequency = "PT5M"
-      windowSize         = "PT15M"
-      autoMitigate       = true
-      skipQueryValidation = true
-      scopes              = [azurerm_log_analytics_workspace.law.id]
-      criteria = {
-        allOf = [{
-          query             = "ContainerAppConsoleLogs_CL\n| where ContainerAppName_s == \"orders-api\"\n| where Log_s contains \"500\" or Log_s contains \"error\" or Log_s contains \"failed\"\n| summarize ErrorCount = count()"
-          operator          = "GreaterThan"
-          threshold         = 5
-          timeAggregation   = "Count"
-        }]
-      }
-      actions = {
-        actionGroups = [azurerm_monitor_action_group.sre_lab[0].id]
-      }
-    }
-  }
-}
-
 # Availability alert: orders-api health endpoint failing.
 resource "azapi_resource" "orders_api_health" {
   count      = local.apps_enabled ? 1 : 0
@@ -101,28 +67,6 @@ resource "azurerm_monitor_action_group" "ai_smart_detection" {
   email_receiver {
     name          = "default"
     email_address = var.email_receiver_address
-  }
-}
-
-resource "azapi_resource" "incident_response_plan" {
-  count                     = local.apps_enabled ? 1 : 0
-  schema_validation_enabled = false
-  type                      = "Microsoft.App/agents/incidentResponsePlans@2026-01-01"
-  name                      = "orders-api-5xx-response"
-  parent_id                 = azapi_resource.sre_agent.id
-
-  body = {
-    properties = {
-      displayName = "Orders API 5xx Response"
-      trigger = {
-        type        = "AzureMonitorAlert"
-        alertRuleId = azapi_resource.orders_api_5xx[0].id
-      }
-      routeTo = {
-        agentName = "orchestrator-agent"
-      }
-      actionMode = var.action_mode
-    }
   }
 }
 
