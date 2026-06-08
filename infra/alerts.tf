@@ -4,12 +4,6 @@ resource "azurerm_monitor_action_group" "sre_lab" {
   resource_group_name = azurerm_resource_group.agent.name
   short_name          = "sreLab"
   tags                = var.tags
-
-  webhook_receiver {
-    name                    = "sre-agent-trigger"
-    service_uri             = "https://${var.agent_name}.${var.location}.azuresre.ai/incidents/ingest"
-    use_common_alert_schema = true
-  }
 }
 
 resource "azapi_resource" "orders_api_5xx" {
