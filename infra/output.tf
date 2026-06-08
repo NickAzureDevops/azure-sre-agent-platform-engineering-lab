@@ -64,3 +64,13 @@ output "change_lookup_url" {
   description = "Public URL of change-lookup."
   value       = local.apps_enabled ? "https://${azurerm_container_app.change_lookup[0].latest_revision_fqdn}" : ""
 }
+
+output "orders_api_health_alert_id" {
+  description = "Resource ID of the orders-api health scheduled query alert."
+  value       = local.apps_enabled ? azurerm_monitor_scheduled_query_rules_alert_v2.orders_api_health[0].id : ""
+}
+
+output "action_mode" {
+  description = "Agent action mode (Review or Automatic)."
+  value       = var.action_mode
+}

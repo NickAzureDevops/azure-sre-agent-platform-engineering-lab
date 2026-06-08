@@ -21,6 +21,8 @@ ACR_NAME="$(read_tf acr_name)"
 ACR_LOGIN_SERVER="$(read_tf acr_login_server)"
 ORDERS_API_NAME="$(read_tf orders_api_name)"
 CHANGE_LOOKUP_NAME="$(read_tf change_lookup_name)"
+HEALTH_ALERT_ID="$(read_tf orders_api_health_alert_id)"
+ACTION_MODE="$(read_tf action_mode)"
 RG="$(echo "$AGENT_ID" | cut -d/ -f5)"
 
 log "Resolving agent data plane endpoint..."
@@ -61,11 +63,18 @@ ok "Knowledge loaded"
 
 # 5/7 — Register skills (S2)
 log "Registering skills..."
-curl -s -X POST "$AGENT_ENDPOINT/skills/register" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "Content-Type: text/markdown" \
-  -H "X-Skill-Id: containerapps-500-diagnostics" \
-  --data-binary "@.github/skills/containerapps-500-diagnostics/SKILL.md"
+for skill_file in \
+  .github/skills/containerapps-500-diagnostics/SKILL.md \
+  .github/skills/provision-incident-response-plan/SKILL.md
+do
+  skill_id="$(basename "$(dirname "$skill_file")")"
+  log "  Registering ${skill_id}..."
+  curl -s -X POST "$AGENT_ENDPOINT/skills/register" \
+    -H "Authorization: Bearer $ACCESS_TOKEN" \
+    -H "Content-Type: text/markdown" \
+    -H "X-Skill-Id: ${skill_id}" \
+    --data-binary "@${skill_file}"
+done
 ok "Skills registered"
 
 # 6/7 — Register subagents (upload each yaml file individually)
@@ -84,7 +93,7 @@ do
 done
 ok "Subagents registered"
 
-# 7/7 — Register approval hook (S4)
+# 7/7 — Register approval hook 
 if [[ -n "${APPROVAL_WEBHOOK_URL:-}" ]]; then
   log "Registering approval hook..."
   HOOK_YAML=$(sed "s|\${APPROVAL_WEBHOOK_URL}|$APPROVAL_WEBHOOK_URL|g" sre-config/hooks/approval-hook.yaml)

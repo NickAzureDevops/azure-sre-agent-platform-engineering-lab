@@ -70,24 +70,3 @@ resource "azurerm_monitor_action_group" "ai_smart_detection" {
   }
 }
 
-resource "azapi_resource" "incident_response_plan_health" {
-  count                     = local.apps_enabled ? 1 : 0
-  schema_validation_enabled = false
-  type                      = "Microsoft.App/agents/incidentResponsePlans@2026-01-01"
-  name                      = "orders-api-health-response"
-  parent_id                 = azapi_resource.sre_agent.id
-
-  body = {
-    properties = {
-      displayName = "Orders API Health Check Response"
-      trigger = {
-        type        = "AzureMonitorAlert"
-        alertRuleId = azurerm_monitor_scheduled_query_rules_alert_v2.orders_api_health[0].id
-      }
-      routeTo = {
-        agentName = "orchestrator-agent"
-      }
-      actionMode = var.action_mode
-    }
-  }
-}
