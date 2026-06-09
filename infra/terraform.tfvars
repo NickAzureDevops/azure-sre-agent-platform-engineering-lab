@@ -1,4 +1,4 @@
-agent_name               = "sre-agent"
+agent_name               = "sre-agent-lab"
 resource_group_name      = "rg-sre-lab"
 location                 = "uksouth"
 target_resource_groups   = []

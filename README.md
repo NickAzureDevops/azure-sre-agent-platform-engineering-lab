@@ -9,7 +9,7 @@ Hands-on Azure SRE Agent lab with four progressive scenarios: detection and tria
 | Azure CLI | `brew install azure-cli` or [guide](https://learn.microsoft.com/cli/azure/install-azure-cli) |
 | Terraform 1.5+ | `brew install terraform` or [guide](https://developer.hashicorp.com/terraform/install) |
 
-## Quick Start (Local)
+## Quick Start
 
 1. Sign in to Azure and select your subscription.
 2. Run `terraform -chdir=infra init`.

@@ -6,7 +6,6 @@ resource "azurerm_monitor_action_group" "sre_lab" {
   tags                = var.tags
 }
 
-# Availability alert: orders-api health endpoint failing.
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "orders_api_health" {
   count               = local.apps_enabled ? 1 : 0
   name                = "alert-orders-api-health"
