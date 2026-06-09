@@ -1,6 +1,6 @@
 resource "azapi_resource" "sre_agent" {
   schema_validation_enabled = false
-  type                      = "Microsoft.App/agents@2026-01-01"
+  type                      = "Microsoft.App/agents@2025-05-01-preview"
   name                      = var.agent_name
   location                  = var.location
   parent_id                 = azurerm_resource_group.agent.id
@@ -13,13 +13,23 @@ resource "azapi_resource" "sre_agent" {
 
   body = {
     properties = {
+      knowledgeGraphConfiguration = {
+        identity         = local.effective_identity_id
+        managedResources = [for rg in var.target_resource_groups : "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${rg}"]
+      }
       actionConfiguration = {
         accessLevel = var.access_level
         identity    = local.effective_identity_id
         mode        = var.action_mode
       }
-      upgradeChannel        = var.upgrade_channel
-      monthlyAgentUnitLimit = var.monthly_agent_unit_limit
+      logConfiguration = {
+        applicationInsightsConfiguration = {
+          appId            = local.effective_ai_app_id
+          connectionString = local.effective_ai_conn_str
+        }
+      }
+      upgradeChannel         = var.upgrade_channel
+      monthlyAgentUnitLimit  = var.monthly_agent_unit_limit
       defaultModel = {
         provider = var.default_model_provider
         name     = var.default_model_name
@@ -31,7 +41,7 @@ resource "azapi_resource" "sre_agent" {
       }
     }
   }
-  
+
   depends_on = [
     azurerm_role_assignment.target_reader,
     azurerm_role_assignment.target_log_reader,
