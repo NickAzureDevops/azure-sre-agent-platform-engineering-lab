@@ -23,7 +23,7 @@ The morning after S2, customer issues flood GitHub. The `issue-triager` runs on 
 
 - **Requires:** S1 or S2 run first — the sample issues reference `CHG0030001` and the rogue revision from that incident
 - **Requires:** GitHub connector configured (OAuth sign-in or fine-grained PAT with `Issues:Read+Write`)
-- **Unlocks:** S4 — governance pass can reference the issue classification patterns and open backlog items
+- **Unlocks:** S4 - enterprise controls scenario can reuse issue classifications for ServiceNow and GitHub handoff consistency checks
 
 ## Run
 

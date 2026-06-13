@@ -37,5 +37,8 @@ spec:
     Keep the status clear and concise for on-call responders.
   handoff_description: Single incident entry point that routes to specialist agents and merges outputs
   agent_type: Autonomous
+  handoffs:
+    - triage-agent
+    - issue-triager
   tools:
     - SearchMemory

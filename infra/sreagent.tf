@@ -6,6 +6,8 @@ resource "azapi_resource" "sre_agent" {
   parent_id                 = azurerm_resource_group.agent.id
   tags                      = var.tags
 
+  response_export_values = ["properties.agentEndpoint"]
+
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [local.effective_identity_id]
@@ -34,10 +36,16 @@ resource "azapi_resource" "sre_agent" {
         provider = var.default_model_provider
         name     = var.default_model_name
       }
+      incidentManagementConfiguration = {
+        type           = "AzMonitor"
+        connectionName = "azmonitor"
+      }
       experimentalSettings = {
         EnableWorkspaceTools = true
         EnableHttpTriggers   = true
         EnableV2AgentLoop    = true
+        EnableDevOpsTools    = true
+        EnablePythonTools    = true
       }
     }
   }
@@ -48,4 +56,18 @@ resource "azapi_resource" "sre_agent" {
     azurerm_role_assignment.target_contributor,
     azurerm_role_assignment.monitoring_reader,
   ]
+}
+
+resource "azapi_resource" "github_data_connector" {
+  schema_validation_enabled = false
+  type                      = "Microsoft.App/agents/DataConnectors@2025-05-01-preview"
+  name                      = "github"
+  parent_id                 = azapi_resource.sre_agent.id
+
+  body = {
+    properties = {
+      dataConnectorType = "GitHubOAuth"
+      dataSource        = "github-oauth"
+    }
+  }
 }

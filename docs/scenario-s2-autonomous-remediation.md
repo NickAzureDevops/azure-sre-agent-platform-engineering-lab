@@ -22,7 +22,7 @@ Same incident as S1, but with higher trust. Once the agent confirms rogue revisi
 ## Scenario Dependencies
 
 - **Requires:** Understand S1 first — S2 runs the identical detection + triage flow, only the trust level differs
-- **Unlocks:** S3 (the rollback from this run creates incident context that customer issues reference), S4 (agent memory now contains a completed remediation record)
+- **Unlocks:** S3 (the rollback from this run creates incident context that customer issues reference), S4 (post-remediation evidence is reused in enterprise connector and permission controls)
 
 ## Prerequisite Toggle
 

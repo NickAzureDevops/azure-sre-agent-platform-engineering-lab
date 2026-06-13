@@ -9,8 +9,8 @@ output "agent_portal_url" {
 }
 
 output "agent_data_plane_url" {
-  description = "Agent data plane endpoint."
-  value       = "https://${var.agent_name}.${var.location}.azuresre.ai"
+  description = "Agent data plane endpoint (real host read from the resource)."
+  value       = try(azapi_resource.sre_agent.output.properties.agentEndpoint, "https://${var.agent_name}.${var.location}.azuresre.ai")
 }
 
 output "managed_identity_id" {

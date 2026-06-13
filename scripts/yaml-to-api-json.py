@@ -13,7 +13,7 @@ import sys
 
 import yaml
 
-if len(sys.argv) != 2:
+if len(sys.argv) < 2:
     sys.stderr.write("Usage: yaml-to-api-json.py FILE\n")
     sys.exit(2)
 
@@ -38,6 +38,9 @@ properties = {}
 for src, dst in key_map.items():
     if src in spec and spec[src] is not None:
         properties[dst] = spec[src]
+
+# The v2 extendedAgent API requires a handoffs array (empty is allowed).
+properties["handoffs"] = spec.get("handoffs") or []
 
 envelope = {
     "name": name,

@@ -1,6 +1,6 @@
 # Azure SRE Agent - Platform Engineering Lab
 
-Hands-on Azure SRE Agent lab with four progressive scenarios: detection and triage, autonomous remediation, issue triage, and reliability governance.
+Hands-on Azure SRE Agent lab with five progressive scenarios: detection and triage, autonomous remediation, issue triage, enterprise guardrails/connectors, and optional infrastructure resiliency validation.
 
 ## Prerequisites
 
@@ -37,7 +37,8 @@ Destroy workflow: [`.github/workflows/destroy.yml`](.github/workflows/destroy.ym
 - [S1 - Detect and triage](docs/scenario-s1-detect-triage.md): trigger a 5xx incident and investigate in review mode.
 - [S2 - Autonomous remediation](docs/scenario-s2-autonomous-remediation.md): rerun S1 with automatic action mode.
 - [S3 - Change issue triage](docs/scenario-s3-change-issue-triage.md): classify and respond to sample GitHub issues.
-- [S4 - Platform Reliability Governance](docs/scenario-s4-platform-reliability-governance.md): run a post-incident guardrail audit and file GitHub issues for every failure.
+- [S4 - Enterprise Guardrails and Connectors at Scale](docs/scenario-s4-enterprise%20guardrails%20and%20connectors.md): demonstrate governed ServiceNow, GitHub Enterprise, and observability workflows with tool permissions and controlled handoffs.
+- [S5 - Infrastructure Resiliency Manager + Chaos Validation (Optional)](docs/scenario-s5-chaos-validation.md): run goal-driven resiliency drills in non-production with tight blast radius and rollback guardrails.
 
 ## Deployed Components
 

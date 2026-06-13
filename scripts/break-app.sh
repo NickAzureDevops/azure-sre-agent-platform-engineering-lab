@@ -6,6 +6,9 @@ ROOT="$(cd "$D/.." && pwd)"
 
 echo "🚨 Breaking orders-api (Scenario 2 — unauthorized deploy)"
 
+echo "  Initializing Terraform backend …"
+(cd "$ROOT/infra" && terraform init -reconfigure -input=false -no-color >/dev/null)
+
 TF_OUT="$(cd "$ROOT/infra" && terraform output -json 2>/dev/null)"
 read_tf() { echo "$TF_OUT" | jq -r ".${1}.value // empty"; }
 

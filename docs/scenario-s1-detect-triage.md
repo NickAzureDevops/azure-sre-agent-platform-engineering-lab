@@ -22,7 +22,7 @@ A developer ships a release straight to production with no change request and no
 ## Scenario Dependencies
 
 - **Requires:** none — this is the entry point for the lab
-- **Unlocks:** S2 (re-run with higher trust to act autonomously), S3 (customer issues reference this incident's CHG numbers), S4 (governance pass uses incident memory from this run)
+- **Unlocks:** S2 (re-run with higher trust to act autonomously), S3 (customer issues reference this incident's CHG numbers), S4 (enterprise controls walkthrough uses this incident as the governed starting point)
 
 ## Run
 
