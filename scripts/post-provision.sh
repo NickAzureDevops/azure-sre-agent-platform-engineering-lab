@@ -38,7 +38,6 @@ AGENT_ENDPOINT="$(az resource show --ids "$AGENT_ID" --query properties.agentEnd
 AGENT_ENDPOINT="${AGENT_ENDPOINT%/}"
 [[ -n "$AGENT_ENDPOINT" ]] || { err "Could not resolve agent endpoint"; exit 1; }
 
-# ── helpers ──
 
 # Fetches a short-lived Bearer token for the SRE Agent data-plane.
 TOKEN=""
@@ -58,7 +57,15 @@ api() {
     "$@" || echo "000"
 }
 
-is2xx() { [[ "$1" =~ ^(200|201|202|204)$ ]]; }
+is_ok_status() {
+  local code="$1"; shift
+  local allowed=(200 201 202 204 "$@")
+  local s
+  for s in "${allowed[@]}"; do
+    [[ "$code" == "$s" ]] && return 0
+  done
+  return 1
+}
 
 # Converts a YAML agent config to JSON and registers it with the agent.
 register_subagent() {
@@ -73,7 +80,7 @@ register_subagent() {
     -H "Content-Type: application/json" \
     --data-binary @"$body")"
 
-  is2xx "$code" && ok "  Registered: $name" || warn "  $name returned HTTP $code"
+  is_ok_status "$code" && ok "  Registered: $name" || warn "  $name returned HTTP $code"
 }
 
 # ── main ──
@@ -98,7 +105,7 @@ for f in knowledge-base/*.md; do
   names+=" $(basename "$f")"
 done
 code="$(api POST /api/v1/AgentMemory/upload "${upload[@]}")"
-is2xx "$code" && ok "  Uploaded:$names" || warn "  Knowledge base upload returned HTTP $code"
+is_ok_status "$code" && ok "  Uploaded:$names" || warn "  Knowledge base upload returned HTTP $code"
 echo
 
 # ── Step 2: skills ──
@@ -109,7 +116,7 @@ for f in .github/skills/*/SKILL.md; do
   code="$(api PUT "/api/v2/extendedAgent/skills/${name}" \
     -H "Content-Type: application/json" \
     --data-binary @"$TEMP_DIR/skill.json")"
-  is2xx "$code" && ok "  Skill: $name" || warn "  Skill $name returned HTTP $code"
+  is_ok_status "$code" && ok "  Skill: $name" || warn "  Skill $name returned HTTP $code"
 done
 echo
 
@@ -135,7 +142,7 @@ plan='{
 code="$(api PUT /api/v1/incidentPlayground/filters/orders-api-errors \
   -H "Content-Type: application/json" \
   --data-binary "$plan")"
-is2xx "$code" && ok "  Response plan → incident-orchestrator" || warn "  Response plan returned HTTP $code"
+is_ok_status "$code" 409 && ok "  Response plan → incident-orchestrator" || warn "  Response plan returned HTTP $code"
 echo
 
 # ── Step 5: GitHub integration ──
@@ -146,11 +153,11 @@ REPO_NAME="$(cut -d/ -f2 <<<"$GITHUB_REPO")"
 code="$(api PUT /api/v2/extendedAgent/connectors/github \
   -H "Content-Type: application/json" \
   -d '{"name":"github","type":"AgentConnector","properties":{"dataConnectorType":"GitHubOAuth","dataSource":"github-oauth"}}')"
-is2xx "$code" && ok "  GitHub OAuth connector created" || warn "  GitHub OAuth connector returned HTTP $code"
+is_ok_status "$code" && ok "  GitHub OAuth connector created" || warn "  GitHub OAuth connector returned HTTP $code"
 
 # If the agent needs OAuth authorization, surface the URL for the user to open.
 api GET /api/v1/github/config >/dev/null 2>&1 || true
-OAUTH_URL="$(jq -r '.oAuthUrl // .OAuthUrl // empty' "$RESP" 2>/dev/null)"
+OAUTH_URL="$(jq -r '.oAuthUrl // .OAuthUrl // empty' "$RESP" 2>/dev/null || true)"
 if [[ -n "$OAUTH_URL" ]]; then
   echo
   echo "  Authorize the SRE Agent to access GitHub:"
@@ -168,7 +175,7 @@ auth
 code="$(api PUT "/api/v2/repos/${REPO_NAME}" \
   -H "Content-Type: application/json" \
   -d "{\"name\":\"${REPO_NAME}\",\"type\":\"CodeRepo\",\"properties\":{\"url\":\"https://github.com/${GITHUB_REPO}\",\"authConnectorName\":\"github\"}}")"
-is2xx "$code" \
+is_ok_status "$code" \
   && ok  "  Code repo: $GITHUB_REPO" \
   || warn "  Code repo returned HTTP $code (authorize GitHub first / check SRE Agent Administrator role)"
 echo

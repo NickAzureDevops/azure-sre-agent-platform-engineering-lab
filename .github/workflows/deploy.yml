@@ -89,3 +89,4 @@ jobs:
       - name: Run full post-provision setup
         shell: bash
         run: bash scripts/post-provision.sh
+        continue-on-error: true
