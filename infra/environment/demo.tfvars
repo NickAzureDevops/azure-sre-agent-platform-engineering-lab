@@ -20,3 +20,5 @@ admin_principal_ids = [
   "092b4414-2bb9-432d-abb2-9e407bf74125",
   "3a168e0b-7a73-4dd0-a4f8-80045502775b"
 ]
+
+deploy_sre_agent = true

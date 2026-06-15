@@ -37,8 +37,8 @@ resource "azurerm_user_assigned_identity" "agent" {
 
 data "azurerm_user_assigned_identity" "existing" {
   count               = local.create_identity ? 0 : 1
-  name                = element(split("/", var.existing_managed_identity_id), length(split("/", var.existing_managed_identity_id)) - 1)
-  resource_group_name = element(split("/", var.existing_managed_identity_id), 4)
+  name                = regex("[^/]+$", var.existing_managed_identity_id)
+  resource_group_name = regex("/resourceGroups/([^/]+)/", var.existing_managed_identity_id)[0]
 }
 
 
@@ -63,15 +63,10 @@ resource "azurerm_application_insights" "ai" {
 
 data "azurerm_application_insights" "existing_ai" {
   count               = local.create_app_insights ? 0 : 1
-  name                = element(split("/", var.existing_agent_app_insights_id), length(split("/", var.existing_agent_app_insights_id)) - 1)
-  resource_group_name = element(split("/", var.existing_agent_app_insights_id), 4)
+  name                = regex("[^/]+$", var.existing_agent_app_insights_id)
+  resource_group_name = regex("/resourceGroups/([^/]+)/", var.existing_agent_app_insights_id)[0]
 }
 
-
-# Skills, subagents, tools, and common prompts are now deployed via data-plane
-# (apply-extras.sh) instead of ARM to avoid tenant restrictions that block 3P tenants.
-
-# ═══════════════════════════ RBAC ═════════════════════════════
 
 # ── Monitoring Reader on agent RG ──
 
@@ -92,16 +87,18 @@ resource "azurerm_role_assignment" "self_log_reader" {
 }
 
 resource "azurerm_role_assignment" "self_smi_reader" {
+  count                = var.deploy_sre_agent ? 1 : 0
   scope                = azurerm_resource_group.agent.id
   role_definition_name = "Reader"
-  principal_id         = azapi_resource.sre_agent.identity[0].principal_id
+  principal_id         = azapi_resource.sre_agent[0].identity[0].principal_id
   principal_type       = "ServicePrincipal"
 }
 
 resource "azurerm_role_assignment" "self_smi_log_reader" {
+  count                = var.deploy_sre_agent ? 1 : 0
   scope                = azurerm_resource_group.agent.id
   role_definition_name = "Log Analytics Reader"
-  principal_id         = azapi_resource.sre_agent.identity[0].principal_id
+  principal_id         = azapi_resource.sre_agent[0].identity[0].principal_id
   principal_type       = "ServicePrincipal"
 }
 
@@ -118,10 +115,10 @@ resource "azurerm_role_assignment" "self_contributor" {
 }
 
 resource "azurerm_role_assignment" "self_smi_contributor" {
-  count                = var.access_level == "High" ? 1 : 0
+  count                = var.deploy_sre_agent && var.access_level == "High" ? 1 : 0
   scope                = azurerm_resource_group.agent.id
   role_definition_name = "Contributor"
-  principal_id         = azapi_resource.sre_agent.identity[0].principal_id
+  principal_id         = azapi_resource.sre_agent[0].identity[0].principal_id
   principal_type       = "ServicePrincipal"
 }
 
@@ -135,9 +132,10 @@ resource "azurerm_role_assignment" "monitoring_contributor_uami" {
 }
 
 resource "azurerm_role_assignment" "monitoring_contributor_smi" {
+  count                = var.deploy_sre_agent ? 1 : 0
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Monitoring Contributor"
-  principal_id         = azapi_resource.sre_agent.identity[0].principal_id
+  principal_id         = azapi_resource.sre_agent[0].identity[0].principal_id
   principal_type       = "ServicePrincipal"
 }
 
@@ -151,16 +149,18 @@ resource "azurerm_role_assignment" "container_apps_contributor_uami" {
 }
 
 resource "azurerm_role_assignment" "container_apps_contributor_smi" {
+  count                = var.deploy_sre_agent ? 1 : 0
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Container Apps Contributor"
-  principal_id         = azapi_resource.sre_agent.identity[0].principal_id
+  principal_id         = azapi_resource.sre_agent[0].identity[0].principal_id
   principal_type       = "ServicePrincipal"
 }
 
 # ── SRE Agent Administrator — deployer on the agent ──
 
 resource "azurerm_role_assignment" "deployer_admin" {
-  scope              = azapi_resource.sre_agent.id
+  count              = var.deploy_sre_agent ? 1 : 0
+  scope              = azapi_resource.sre_agent[0].id
   role_definition_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/${local.sre_agent_admin_role_id}"
   principal_id       = data.azurerm_client_config.current.object_id
 }
@@ -168,7 +168,8 @@ resource "azurerm_role_assignment" "deployer_admin" {
 # ── SRE Agent Administrator — UAMI on the agent ──
 
 resource "azurerm_role_assignment" "uami_admin" {
-  scope              = azapi_resource.sre_agent.id
+  count              = var.deploy_sre_agent ? 1 : 0
+  scope              = azapi_resource.sre_agent[0].id
   role_definition_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/${local.sre_agent_admin_role_id}"
   principal_id       = local.effective_principal_id
   principal_type     = "ServicePrincipal"
@@ -177,8 +178,8 @@ resource "azurerm_role_assignment" "uami_admin" {
 # ── SRE Agent Administrator — additional admin principals ──
 
 resource "azurerm_role_assignment" "admin_principals" {
-  for_each           = toset(var.admin_principal_ids)
-  scope              = azapi_resource.sre_agent.id
+  for_each           = var.deploy_sre_agent ? toset(var.admin_principal_ids) : toset([])
+  scope              = azapi_resource.sre_agent[0].id
   role_definition_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/${local.sre_agent_admin_role_id}"
   principal_id       = each.value
 }
@@ -212,25 +213,25 @@ resource "azurerm_role_assignment" "target_contributor" {
 }
 
 resource "azurerm_role_assignment" "smi_target_reader" {
-  for_each             = toset(var.target_resource_groups)
+  for_each             = var.deploy_sre_agent ? toset(var.target_resource_groups) : toset([])
   scope                = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${each.value}"
   role_definition_name = "Reader"
-  principal_id         = azapi_resource.sre_agent.identity[0].principal_id
+  principal_id         = azapi_resource.sre_agent[0].identity[0].principal_id
   principal_type       = "ServicePrincipal"
 }
 
 resource "azurerm_role_assignment" "smi_target_log_reader" {
-  for_each             = toset(var.target_resource_groups)
+  for_each             = var.deploy_sre_agent ? toset(var.target_resource_groups) : toset([])
   scope                = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${each.value}"
   role_definition_name = "Log Analytics Reader"
-  principal_id         = azapi_resource.sre_agent.identity[0].principal_id
+  principal_id         = azapi_resource.sre_agent[0].identity[0].principal_id
   principal_type       = "ServicePrincipal"
 }
 
 resource "azurerm_role_assignment" "smi_target_contributor" {
-  for_each             = var.access_level == "High" ? toset(var.target_resource_groups) : toset([])
+  for_each             = var.deploy_sre_agent && var.access_level == "High" ? toset(var.target_resource_groups) : toset([])
   scope                = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${each.value}"
   role_definition_name = "Contributor"
-  principal_id         = azapi_resource.sre_agent.identity[0].principal_id
+  principal_id         = azapi_resource.sre_agent[0].identity[0].principal_id
   principal_type       = "ServicePrincipal"
 }

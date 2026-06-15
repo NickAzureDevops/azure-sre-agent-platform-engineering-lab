@@ -1,6 +1,6 @@
 output "agent_id" {
   description = "Full ARM resource ID of the SRE Agent."
-  value       = azapi_resource.sre_agent.id
+  value       = var.deploy_sre_agent ? azapi_resource.sre_agent[0].id : ""
 }
 
 output "agent_portal_url" {
@@ -10,7 +10,7 @@ output "agent_portal_url" {
 
 output "agent_data_plane_url" {
   description = "Agent data plane endpoint (real host read from the resource)."
-  value       = try(azapi_resource.sre_agent.output.properties.agentEndpoint, "https://${var.agent_name}.${var.location}.azuresre.ai")
+  value       = var.deploy_sre_agent ? try(azapi_resource.sre_agent[0].output.properties.agentEndpoint, "https://${var.agent_name}.${var.location}.azuresre.ai") : ""
 }
 
 output "managed_identity_id" {
@@ -73,4 +73,14 @@ output "orders_api_health_alert_id" {
 output "action_mode" {
   description = "Agent action mode (Review or Automatic)."
   value       = var.action_mode
+}
+
+output "vnet_id" {
+  description = "Resource ID of the VNet created for VNet integration (empty if disabled or BYO subnet)."
+  value       = local.create_vnet ? azurerm_virtual_network.agent[0].id : ""
+}
+
+output "agent_subnet_id" {
+  description = "Resource ID of the dedicated agent subnet used for VNet integration."
+  value       = local.vnet_enabled ? local.effective_subnet_id : ""
 }

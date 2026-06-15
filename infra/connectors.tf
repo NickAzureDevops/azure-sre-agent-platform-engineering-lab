@@ -58,11 +58,11 @@ locals {
 }
 
 resource "azapi_resource" "connector" {
-  for_each                  = { for c in local.all_connectors : c.name => c }
+  for_each                  = var.deploy_sre_agent ? { for c in local.all_connectors : c.name => c } : {}
   schema_validation_enabled = false
   type                      = "Microsoft.App/agents/connectors@2025-05-01-preview"
   name                      = each.key
-  parent_id                 = azapi_resource.sre_agent.id
+  parent_id                 = azapi_resource.sre_agent[0].id
 
   body = {
     properties = each.value.properties

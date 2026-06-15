@@ -220,3 +220,34 @@ variable "webhook_bridge_trigger_url" {
   type        = string
   default     = ""
 }
+
+variable "deploy_sre_agent" {
+  description = "Deploy the SRE Agent resource."
+  type        = bool
+}
+
+# ── Network integration ──
+
+variable "enable_vnet" {
+  description = "Enable Azure VNet integration (Azure VNet egress mode). Creates a VNet and dedicated subnet delegated to Microsoft.App/environments."
+  type        = bool
+  default     = false
+}
+
+variable "vnet_address_space" {
+  description = "Address space for the VNet created when enable_vnet = true."
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "agent_subnet_prefix" {
+  description = "CIDR for the dedicated agent subnet. Must be /28 or larger."
+  type        = string
+  default     = "10.0.0.0/28"
+}
+
+variable "existing_subnet_id" {
+  description = "Resource ID of an existing subnet to use for VNet integration. If set, no VNet is created and enable_vnet is implied."
+  type        = string
+  default     = ""
+}

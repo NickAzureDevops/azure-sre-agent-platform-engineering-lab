@@ -3,6 +3,13 @@ name: Deploy SRE Agent Lab
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: "Target environment"
+        type: choice
+        options:
+          - demo
+          - sbox
+        default: demo
       plan:
         description: "Run Terraform plan"
         type: boolean
@@ -45,7 +52,7 @@ jobs:
 
       - name: Terraform plan
         if: ${{ inputs.plan || inputs.apply }}
-        run: terraform -chdir=infra plan -out=tfplan -var-file=terraform.tfvars
+        run: terraform -chdir=infra plan -out=tfplan -var-file=environment/${{ inputs.environment }}.tfvars
 
       - name: Terraform apply
         if: ${{ inputs.apply }}

@@ -1,4 +1,5 @@
 resource "azapi_resource" "sre_agent" {
+  count                    = var.deploy_sre_agent ? 1 : 0
   schema_validation_enabled = false
   type                      = "Microsoft.App/agents@2025-05-01-preview"
   name                      = var.agent_name
@@ -14,7 +15,7 @@ resource "azapi_resource" "sre_agent" {
   }
 
   body = {
-    properties = {
+    properties = merge({
       knowledgeGraphConfiguration = {
         identity         = local.effective_identity_id
         managedResources = [for rg in var.target_resource_groups : "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${rg}"]
@@ -47,7 +48,7 @@ resource "azapi_resource" "sre_agent" {
         EnableDevOpsTools    = true
         EnablePythonTools    = true
       }
-    }
+    }, local.network_config)
   }
 
   depends_on = [
@@ -55,6 +56,7 @@ resource "azapi_resource" "sre_agent" {
     azurerm_role_assignment.target_log_reader,
     azurerm_role_assignment.target_contributor,
     azurerm_role_assignment.monitoring_reader,
+    azurerm_subnet.agent,
   ]
 }
 
@@ -62,7 +64,7 @@ resource "azapi_resource" "github_data_connector" {
   schema_validation_enabled = false
   type                      = "Microsoft.App/agents/DataConnectors@2025-05-01-preview"
   name                      = "github"
-  parent_id                 = azapi_resource.sre_agent.id
+  parent_id                 = azapi_resource.sre_agent[0].id
 
   body = {
     properties = {
