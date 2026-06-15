@@ -55,7 +55,7 @@ api() {
   curl -s -o "$RESP" -w "%{http_code}" --connect-timeout 15 --max-time 60 \
     -X "$method" "${AGENT_ENDPOINT}${path}" \
     -H "Authorization: Bearer $TOKEN" \
-    "$@"
+    "$@" || echo "000"
 }
 
 is2xx() { [[ "$1" =~ ^(200|201|202|204)$ ]]; }
