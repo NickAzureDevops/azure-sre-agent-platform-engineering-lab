@@ -12,12 +12,12 @@ Hands-on Azure SRE Agent lab with five progressive scenarios: detection and tria
 ## Quick Start
 
 1. Sign in to Azure and select your subscription.
-2. Run `terraform -chdir=infra init`.
-3. Run `terraform -chdir=infra apply -auto-approve -var-file=environment/demo.tfvars`.
+2. Run `terraform -chdir=infra/terraform init`.
+3. Run `terraform -chdir=infra/terraform apply -auto-approve -var-file=environment/demo.tfvars`.
 4. Run `bash scripts/post-provision.sh`.
    - Optional: set `SERVICENOW_INSTANCE_URL`, `SERVICENOW_USERNAME`, and `SERVICENOW_PASSWORD` first to auto-register the ServiceNow connector.
 
-Cloud Shell note: if data-plane setup fails, run `az login --scope "https://azuresre.dev/.default"` and rerun `bash scripts/post-provision.sh --retry`.
+Cloud Shell note: if data-plane setup fails, run `az login --scope "https://azuresre.dev/.default"` and rerun `bash scripts/post-provision.sh`.
 
 ## GitHub Actions
 
@@ -36,7 +36,7 @@ Destroy workflow: [`.github/workflows/destroy.yml`](.github/workflows/destroy.ym
 ## Scenarios
 
 - [S1 - Detect and triage](docs/scenario-s1-detect-triage.md): trigger a 5xx incident and investigate in review mode.
-- [S2 - Autonomous remediation](docs/scenario-s2-autonomous-remediation.md): rerun S1 with automatic action mode.
+- [S2 - Autonomous remediation](docs/scenario-s2-autonomous-remediation.md): break the running app with a `curl` and watch the agent detect, investigate, and remediate — runtime only, no redeploy.
 - [S3 - Change issue triage](docs/scenario-s3-change-issue-triage.md): classify and respond to sample GitHub issues.
 - [S4 - Enterprise Guardrails and Connectors at Scale](docs/scenario-s4-enterprise-guardrails-connectors.md): demonstrate governed ServiceNow, GitHub Enterprise, and observability workflows with tool permissions and controlled handoffs.
 
@@ -46,14 +46,14 @@ The lab deploys **one shared stack** — scenarios differ only by a couple of ag
 
 ```bash
 # Example: deploy the demo environment configured for S2 (autonomous remediation)
-terraform -chdir=infra apply -var-file=environment/demo.tfvars \
+terraform -chdir=infra/terraform apply -var-file=environment/demo.tfvars \
   -var access_level=High -var action_mode=Automatic
 ```
 
 | Scenario | `access_level` | `action_mode` | Connectors |
 |---|---|---|---|
 | S1 Detect & triage | `Low` | `Review` | — |
-| S2 Autonomous remediation | `High` | `Automatic` | — |
+| S2 Autonomous remediation | `Low`/`High` (optional) | `Review`/`Automatic` (optional) | — (runtime-only scenario; `High`+`Automatic` lets the agent fix without approval) |
 | S3 Change issue triage | `Low` | `Review` | — (reuses the S1/S2 agent) |
 | S4 Guardrails & connectors | `High` | `Review` | `enable_log_analytics_connector`, `enable_app_insights_connector` = `true` |
 

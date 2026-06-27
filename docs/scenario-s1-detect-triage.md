@@ -49,9 +49,9 @@ A developer ships a release straight to production with no change request and no
 | Relationship | Scenario |
 |-------------|----------|
 | **Prerequisites** | None — this is the entry point |
-| **Unlocks** | [S2](./scenario-s2-autonomous-remediation.md) — re-run with higher trust to act autonomously |
+| **Unlocks** | [S2](./scenario-s2-autonomous-remediation.md) — break the running app at runtime and watch the agent remediate |
 | **Unlocks** | [S3](./scenario-s3-change-issue-triage.md) — customer issues reference this incident's CHG numbers |
-| **Unlocks** | [S4](./scenario-s4-enterprise%20guardrails%20and%20connectors.md) — enterprise controls walkthrough uses this incident as the governed starting point |
+| **Unlocks** | [S4](./scenario-s4-enterprise-guardrails-connectors.md) — enterprise controls walkthrough uses this incident as the governed starting point |
 
 ---
 
@@ -65,7 +65,7 @@ To restore afterward:
 
 ```bash
 # If runtime 5xx simulation mode was used
-APP_URL="$(cd infra && terraform output -raw orders_api_url)"
+APP_URL="$(cd infra/terraform && terraform output -raw orders_api_url)"
 curl -X POST "$APP_URL/api/simulate/reset"
 curl -X POST "$APP_URL/api/simulate/clear-cr"
 

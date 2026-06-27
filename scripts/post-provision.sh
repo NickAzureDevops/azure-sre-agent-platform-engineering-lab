@@ -25,7 +25,7 @@ GITHUB_OAUTH_WAIT_SECONDS="${GITHUB_OAUTH_WAIT_SECONDS:-240}"
 
 # ── read values from Terraform state ──
 log "Loading Terraform outputs..."
-TF_OUT="$(terraform -chdir=infra output -json 2>/dev/null || true)"
+TF_OUT="$(terraform -chdir=infra/terraform output -json 2>/dev/null || true)"
 [[ -n "$TF_OUT" ]] || { err "Terraform outputs missing — run 'terraform apply' first"; exit 1; }
 read_tf() { jq -r ".${1}.value // empty" <<<"$TF_OUT"; }
 

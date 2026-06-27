@@ -33,7 +33,7 @@ The morning after S2, customer issues flood GitHub. The `issue-triager` runs on 
 |-------------|----------|
 | **Prerequisites** | [S1](./scenario-s1-detect-triage.md) or [S2](./scenario-s2-autonomous-remediation.md) |
 | **Prerequisites** | GitHub connector configured (OAuth sign-in or fine-grained PAT with `Issues: Read + Write`) |
-| **Unlocks** | [S4](./scenario-s4-enterprise%20guardrails%20and%20connectors.md) — issue classifications can be compared against ServiceNow categorization |
+| **Unlocks** | [S4](./scenario-s4-enterprise-guardrails-connectors.md) — issue classifications can be compared against ServiceNow categorization |
 
 ---
 
