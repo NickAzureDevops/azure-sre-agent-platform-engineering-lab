@@ -49,6 +49,18 @@ resource "azurerm_log_analytics_workspace" "law" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
   tags                = var.tags
+
+  # Azure RBAC assignments have eventual consistency. Waiting here after
+  # workspace creation gives role assignments (Monitoring Contributor +
+  # Log Analytics Reader) time to propagate before dependent Scheduled Query
+  # Rules attempt to validate workspace access via the Azure Monitor API.
+  # Without this delay the API returns 400 "The workspace could not be found"
+  # because the caller's permissions haven't taken effect yet.
+  # 180 s is based on observed propagation lag (~3–4 min in this subscription);
+  # reduce cautiously. The workflow runs on ubuntu-latest so POSIX sleep is safe.
+  provisioner "local-exec" {
+    command = "sleep 180"
+  }
 }
 
 resource "azurerm_application_insights" "ai" {
